@@ -7,7 +7,7 @@ require "./commands/*"
 
 module Dark::Agent
 
-  # CommandHandler processes commands from the C2 server and routes them
+  # CommandHandler processes commands from the server and routes them
   # to built-in commands or BOF execution as appropriate. This class:
   # - Manages the BOF registry for loaded BOFs
   # - Routes built-in commands through the command registry system
@@ -67,14 +67,14 @@ module Dark::Agent
     # =====================================================================
     # === FILE OPERATIONS ===
     # =====================================================================
-    # Downloads a file from Mythic C2 server in chunks
+    # Downloads a file from the Mythic server in chunks
     # Retrieves binary content by making multiple chunked requests
     # Handles reassembly of chunks and progress tracking
     # Returns file contents as bytes or nil if download failed
     # =====================================================================
 
 
-    # Downloads a BOF file from Mythic C2 server in chunks
+    # Downloads a BOF file from the Mythic server in chunks
     protected def download_bof_file(file_id : String, task_id : String) : Bytes?
       begin
         log_debug("Downloading file_id: #{file_id}")
@@ -180,7 +180,7 @@ module Dark::Agent
     # Main command execution entry point
     #
     # The execute method is the central command routing function that:
-    # 1. Parses the JSON task input from the C2 server
+    # 1. Parses the JSON task input from the server
     # 2. Identifies the requested command
     # 3. Routes to command registry for built-in commands (sleep, load, download, etc.)
     # 4. Routes to BOF registry for loaded BOF execution with special response handling

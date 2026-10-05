@@ -34,7 +34,7 @@ module Dark::Agent
     end
 
     # Runs the agent's main execution flow. This method:
-    # 1. Attempts to establish initial check-in with the C2 server
+    # 1. Attempts to establish initial check-in with the remote server
     # 2. Retries with jitter if check-in fails
     # 3. Once connected, enters the main command execution loop
     # 4. Continuously polls for tasks, executes them, and sends results

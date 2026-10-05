@@ -46,11 +46,11 @@ When viewed in the Mythic browser interface, the output includes:
 
 ### Security Analysis
 
-The command automatically analyzes mount options from a red team perspective:
+The command automatically analyzes mount options from a security assessment perspective:
 
-- **EXPLOITABLE** (Green): Read-write filesystems without security restrictions - ideal for exploitation
-- **RESTRICTED** (Yellow): Read-write filesystems with some security restrictions - limited exploitation potential  
-- **HARDENED** (Red): Filesystems with security restrictions like `noexec`, `nosuid`, `nodev`, or `ro` - difficult to exploit
+- **WRITABLE** (Green): Read-write filesystems without security restrictions
+- **RESTRICTED** (Yellow): Read-write filesystems with some security restrictions
+- **HARDENED** (Red): Filesystems with security restrictions like `noexec`, `nosuid`, `nodev`, or `ro`
 
 ## MITRE ATT&CK Mapping
 
@@ -58,7 +58,7 @@ The command automatically analyzes mount options from a red team perspective:
 
 ## Implementation
 
-This command is implemented as a BOF (Beacon Object File) that:
+This command is implemented as a loadable object file that:
 
 1. Reads `/proc/mounts` to enumerate all mounted filesystems
 2. Extracts mount information including device, mount point, filesystem type, and options

@@ -4,19 +4,19 @@ chapter = false
 weight = 50
 +++
 
-# Creating Custom BOFs for Dark Agent
+# Creating Custom Modules for Dark Agent
 
-Dark Agent allows you to extend its functionality by creating custom Beacon Object Files (BOFs). These are compiled C object files that can be loaded and executed by the agent at runtime.
+Dark Agent allows you to extend its functionality by creating custom loadable object files. These are compiled C object files that can be loaded and executed by the agent at runtime.
 
-## BOF Development Overview
+## Module Development Overview
 
-BOFs in Dark Agent provide:
-- Access to the Beacon API for output and functionality
+Modules in Dark Agent provide:
+- Access to the output API for output and functionality
 - Small, fast executables that run in the agent's process
 - No need to restart the agent to add new commands
 - Simplified C programming interface
 
-## BOF Development Process
+## Module Development Process
 
 ### 1. Set Up Development Environment
 
@@ -33,19 +33,19 @@ Start by creating a new `.c` file in the `src/bofs/c/` directory. Here's a minim
 #include "beacon.h"
 
 void coffee() {
-    BeaconPrintf(CALLBACK_OUTPUT, "Hello from my custom BOF!");
+    BeaconPrintf(CALLBACK_OUTPUT, "Hello from my custom module!");
     
     // Your functionality here
 }
 ```
 
 Important notes:
-- The `coffee()` function is the entry point for your BOF
-- `beacon.h` provides access to the Beacon API
+- The `coffee()` function is the entry point for your module
+- `beacon.h` provides access to the output API
 
-### 3. Using the Beacon API
+### 3. Using the Output API
 
-Dark Agent implements these Beacon API callbacks:
+Dark Agent implements these output API callbacks:
 
 | Callback | Description |
 |----------|-------------|
@@ -76,9 +76,9 @@ BeaconPrintf("The value is %s", number_str);
 // BeaconPrintf("The value is %d", value);
 ```
 
-### 4. Compiling Your BOF
+### 4. Compiling Your Module
 
-Use GCC to compile your BOF:
+Use GCC to compile your module:
 
 ```bash
 gcc -fPIC -c your_bof.c -o your_bof.o -I src/bofs/includes
@@ -90,9 +90,9 @@ Or add it to the Dark Agent build script by placing it in the `src/bofs/` direct
 ./build.sh -b
 ```
 
-### 5. Using Your Custom BOF
+### 5. Using Your Custom Module
 
-Once compiled, your BOF can be loaded into the agent:
+Once compiled, your module can be loaded into the agent:
 
 1. **Using manual loading**:
    ```
@@ -102,11 +102,11 @@ Once compiled, your BOF can be loaded into the agent:
 
 2. **Creating a Mythic command wrapper** (advanced):
    
-   To add a Mythic UI wrapper for your BOF, you need to create a Python file in the `agent_functions` directory. This is for advanced users who want full Mythic UI integration.
+   To add a Mythic UI wrapper for your module, you need to create a Python file in the `agent_functions` directory. This is for advanced users who want full Mythic UI integration.
 
-## Example: Creating a 'hostname' BOF
+## Example: Creating a 'hostname' Module
 
-Let's create a simple BOF that displays the system hostname:
+Let's create a simple module that displays the system hostname:
 
 ```c
 #include "beacon.h"
@@ -132,11 +132,11 @@ bof_load hostname
 bof_execute hostname
 ```
 
-## Advanced BOF Development
+## Advanced Module Development
 
-### Passing Arguments to BOFs
+### Passing Arguments
 
-For BOFs that need to accept arguments, you need to parse them manually from the command line:
+For modules that need to accept arguments, you need to parse them manually from the command line:
 
 ```c
 #include "beacon.h"
@@ -161,28 +161,28 @@ void coffee() {
 }
 ```
 
-### BOF Best Practices
+### Best Practices
 
-1. **Keep it Simple**: BOFs should be focused on a single task
+1. **Keep it Simple**: Modules should be focused on a single task
 2. **Error Handling**: Always check return values and handle errors
 3. **Memory Management**: Be careful with memory allocations
 4. **String Safety**: Use safe string functions to avoid buffer overflows
-5. **Testing**: Test your BOFs in direct mode before using them in operations
+5. **Testing**: Test your modules in direct mode before using them in operations
 
-## Troubleshooting BOF Development
+## Troubleshooting Module Development
 
-Common issues when developing BOFs:
+Common issues when developing modules:
 
 - **Compilation Errors**: Make sure you're including the correct headers
 - **Runtime Errors**: Use debug mode to see detailed error messages
 - **String Formatting Issues**: Remember to only use `%s` for string formatting
 - **Memory Issues**: Be careful with memory allocation/deallocation
 
-You can test BOFs in direct mode for easier debugging:
+You can test modules in direct mode for easier debugging:
 
 ```bash
 ./build.sh -D
 ./output/dark-agent-direct output/bofs/your_bof.o arg1 arg2
 ```
 
-This will load and execute your BOF outside of Mythic, making it easier to debug issues.
+This will load and execute your module outside of Mythic, making it easier to debug issues.

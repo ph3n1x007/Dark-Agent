@@ -60,6 +60,22 @@ class DarkAgent(PayloadType):
             group_name="Security Options"
         ),
         BuildParameter(
+            name="proxy_auth_scheme",
+            parameter_type=BuildParameterType.String,
+            description="Proxy auth: empty for challenge-based auto selection, basic, or negotiate.",
+            default_value="",
+            required=False,
+            group_name="Proxy Options"
+        ),
+        BuildParameter(
+            name="proxy_spn_override",
+            parameter_type=BuildParameterType.String,
+            description="Optional GSS host-based service name, such as HTTP@proxy.example.test.",
+            default_value="",
+            required=False,
+            group_name="Proxy Options"
+        ),
+        BuildParameter(
             name="symmetric_jitter",
             parameter_type=BuildParameterType.Boolean,
             description="Use symmetric jitter (base ± jitter%) instead of traditional positive-only jitter (base + jitter%). Makes beacon timing less predictable.",
@@ -102,7 +118,7 @@ class DarkAgent(PayloadType):
     async def handle_http_profile(self, c2, agent_config):
         """Handle standard HTTP profile configuration"""
         logging.info("Processing HTTP profile")
-        # Get all parameters from the C2 profile
+        # Get all parameters from the profile
         c2_params = c2.get_parameters_dict()
 
         # Ensure core parameters are present
@@ -118,7 +134,7 @@ class DarkAgent(PayloadType):
     async def handle_httpx_profile(self, c2, agent_config):
         """Handle HTTPX (malleable) profile configuration"""
         logging.info("Processing HTTPX profile")
-        # Get all parameters from the C2 profile
+        # Get all parameters from the profile
         c2_params = c2.get_parameters_dict()
 
         # Ensure core parameters are present
@@ -136,7 +152,6 @@ class DarkAgent(PayloadType):
                 if response.Success:
                     # Parse the content as JSON
                     raw_config_content = response.Content.decode('utf-8')
-                    logging.debug(f"Raw config content: {raw_config_content[:100]}...")
 
                     try:
                         parsed_config = json.loads(raw_config_content)
@@ -214,6 +229,10 @@ class DarkAgent(PayloadType):
         DEBUG_SOCKS_MODE = self.get_parameter("debug_socks")
         ENCRYPTION = self.get_parameter("encryption")
         SSL_VERIFY = self.get_parameter("ssl_verify")
+        PROXY_AUTH_SCHEME = (self.get_parameter("proxy_auth_scheme") or "").strip().lower()
+        PROXY_SPN_OVERRIDE = (self.get_parameter("proxy_spn_override") or "").strip()
+        if PROXY_AUTH_SCHEME not in ("", "basic", "negotiate"):
+            raise ValueError("proxy_auth_scheme must be empty, basic, or negotiate")
         SYMMETRIC_JITTER = self.get_parameter("symmetric_jitter")
         REALTIME = self.get_parameter("realtime")
         CHUNK_SIZE = self.get_parameter("chunk_size")
@@ -352,7 +371,7 @@ class DarkAgent(PayloadType):
             ### Step 3: Configuration
             #################################################################
             #################################################################
-            # Generate configuration from C2 profile
+            # Generate configuration from profile
             for c2 in self.c2info:
                 profile = c2.get_c2profile()
                 profile_type = profile["name"]
@@ -363,6 +382,8 @@ class DarkAgent(PayloadType):
                     "uuid": self.uuid,
                     "encryption_enabled": ENCRYPTION,
                     "ssl_verify": SSL_VERIFY,
+                    "proxy_auth_scheme": PROXY_AUTH_SCHEME,
+                    "proxy_spn_override": PROXY_SPN_OVERRIDE,
                     "symmetric_jitter": SYMMETRIC_JITTER,
                     "realtime": REALTIME,
                     "chunk_size": CHUNK_SIZE * 1024  # Convert KB to bytes
@@ -385,7 +406,7 @@ class DarkAgent(PayloadType):
 
                 # Log the generated configuration for debugging
                 logging.info(f"Generated configuration for profile type: {config['profile']}")
-                logging.info(config)
+                logging.info("Proxy auth scheme: %s", PROXY_AUTH_SCHEME or "auto")
 
                 # Write configuration directly to the agent build path
                 config_file = agent_build_path / "profile.json"
@@ -410,7 +431,7 @@ class DarkAgent(PayloadType):
             #################################################################
             build_cmd = ["./build.sh"]
 
-            # Detect C2 profile type
+            # Detect profile type
             profile_name = "http"
             for c2 in self.c2info:
                 c2_profile = c2.get_c2profile()["name"]

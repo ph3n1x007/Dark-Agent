@@ -27,7 +27,7 @@ graph TD
     A[Mythic Server] <--> B[Dark Agent]
     B <--> C[Target Services]
     
-    subgraph "Mythic C2 Infrastructure"
+    subgraph "Mythic Infrastructure"
         A
     end
     

@@ -33,7 +33,7 @@ function(task, responses) {
                 const dev = device.toLowerCase();
                 const fs = fsType.toLowerCase();
 
-                // Persistent storage filesystems (important for red team)
+                // Persistent storage filesystems (important for security assessment)
                 if (fs === 'ext4' || fs === 'ext3' || fs === 'ext2' || fs === 'xfs' || fs === 'btrfs' || fs === 'zfs') {
                     return { color: "#28a745", fontWeight: "bold", icon: "hdd" };
                 }

@@ -130,7 +130,7 @@ Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
 192.168.100.0   10.0.1.254      255.255.255.0   UG        0 0          0 eth0
 ```
 
-## OPSEC Considerations
+## Security Considerations
 
 **Detection Risk:**
 - **Low Profile**: Standard administrative command
@@ -195,7 +195,7 @@ tcp  0  0  0.0.0.0:88     0.0.0.0:*  LISTEN  1345/krb5kdc    # Kerberos
 
 ## Technical Details
 
-- **Implementation**: BOF (Beacon Object File) execution
+- **Implementation**: Loadable object file execution
 - **Performance**: May take several seconds for complete output
 - **Privileges**: Some information requires elevated privileges
 - **Output Size**: Can be large on busy systems

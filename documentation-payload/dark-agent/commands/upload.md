@@ -68,10 +68,10 @@ Upload completed successfully: /tmp/large_file.bin
 4. Process repeats until all chunks are received
 5. File is marked complete and closed
 
-## OPSEC Considerations
+## Security Considerations
 
 - File writes are performed by the agent process
-- Large uploads create multiple HTTP requests to C2 server  
+- Large uploads create multiple HTTP requests to server
 - Files are written directly to specified path (no staging area)
 - Consider upload size vs. network detection risk
 - Uploaded files persist on disk until manually removed

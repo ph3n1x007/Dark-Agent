@@ -7,7 +7,7 @@ require "./transport/base"
 {% end %}
 
 module Dark::Agent
-  # Transport module for C2 communication with Mythic server
+  # Transport module for communication with Mythic server
   #
   # Handles secure agent-server communications with encryption, check-in,
   # task retrieval, and response submission. Designed for multiple transport

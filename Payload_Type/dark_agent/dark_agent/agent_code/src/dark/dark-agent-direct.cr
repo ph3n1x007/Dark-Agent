@@ -4,10 +4,10 @@ require "./common/*"
 # Setup logging
 log_debug("Starting Dark Agent in direct mode (COFF loader only)...")
 
-# Setup the default Beacon callbacks
+# Setup the default output callbacks
 Dark::ELF::Callbacks.register_defaults
 
-# Check for COFF file argument
+# Check for object file argument
 if ARGV.size < 1
   log_error("No COFF file specified. Usage: dark-agent-direct <coff_file> [args...]")
   exit(1)
@@ -15,7 +15,7 @@ end
 
 coff_file = ARGV[0]
 
-# Load and execute the specified COFF file
+# Load and execute the specified object file
 begin
   log_debug("Loading COFF file: #{coff_file}")
   

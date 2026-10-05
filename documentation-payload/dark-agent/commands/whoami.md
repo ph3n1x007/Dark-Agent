@@ -103,7 +103,7 @@ id
 groups
 ```
 
-## OPSEC Considerations
+## Security Considerations
 
 - Command execution is very low profile
 - No network activity generated
@@ -112,7 +112,7 @@ groups
 
 ## Technical Details
 
-- **Implementation**: Uses BOF (Beacon Object File) execution
+- **Implementation**: Uses loadable object file execution
 - **Performance**: Near-instantaneous execution
 - **Dependencies**: None (uses system calls)
 - **Output Format**: Standard Unix format compatible

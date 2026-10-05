@@ -110,5 +110,70 @@ module Dark::Agent::Config
     def disable_ssl_verify? : Bool
       !ssl_verify?
     end
+
+    def proxy_host : String
+      c2 = c2_profile
+      if c2["proxy_host"]?
+        return c2["proxy_host"].as_s
+      end
+      ""
+    end
+
+    def proxy_port : String
+      c2 = c2_profile
+      if value = c2["proxy_port"]?
+        if text = value.as_s?
+          return text
+        end
+        if number = value.as_i?
+          return number.to_s
+        end
+      end
+      ""
+    end
+
+    def proxy_user : String
+      c2 = c2_profile
+      if c2["proxy_user"]?
+        return c2["proxy_user"].as_s
+      end
+      ""
+    end
+
+    def proxy_pass : String
+      c2 = c2_profile
+      if c2["proxy_pass"]?
+        return c2["proxy_pass"].as_s
+      end
+      ""
+    end
+
+    def proxy_auth_scheme : String
+      if agent = @config["agent"]?
+        if value = agent["proxy_auth_scheme"]?
+          scheme = value.as_s.strip.downcase
+          return scheme unless scheme.empty?
+        end
+      end
+      c2 = c2_profile
+      if c2["proxy_auth_scheme"]?
+        return c2["proxy_auth_scheme"].as_s.strip.downcase
+      end
+      ""
+    end
+
+    def proxy_spn_override : String
+      if agent = @config["agent"]?
+        if value = agent["proxy_spn_override"]?
+          override = value.as_s.strip
+          return override unless override.empty?
+        end
+      end
+      c2 = c2_profile
+      if c2["proxy_spn_override"]?
+        return c2["proxy_spn_override"].as_s.strip
+      end
+      ""
+    end
   end
 end

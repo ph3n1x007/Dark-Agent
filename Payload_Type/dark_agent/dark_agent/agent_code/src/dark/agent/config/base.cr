@@ -24,6 +24,17 @@ module Dark::Agent::Config
     abstract def realtime? : Bool
     abstract def disable_ssl_verify? : Bool
 
+    # Proxy configuration
+    abstract def proxy_host : String
+    abstract def proxy_port : String
+    abstract def proxy_user : String
+    abstract def proxy_pass : String
+    # Proxy auth scheme: "" (auto), "basic", or "negotiate"
+    abstract def proxy_auth_scheme : String
+    # Optional explicit SPN for Negotiate, e.g. "HTTP@proxy-vip.corp"
+    # Empty = derive from proxy hostname
+    abstract def proxy_spn_override : String
+
     # Common methods that use the abstract methods
     def has_kill_date? : Bool
       !killdate.empty?
@@ -60,6 +71,10 @@ module Dark::Agent::Config
     # Keep has_encryption? for backwards compatibility
     def has_encryption? : Bool
       encryption_enabled?
+    end
+
+    def proxy_configured? : Bool
+      !proxy_host.empty?
     end
   end
 end

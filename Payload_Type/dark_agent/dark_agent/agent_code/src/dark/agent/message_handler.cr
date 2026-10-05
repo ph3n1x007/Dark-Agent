@@ -3,11 +3,11 @@ require "./config"
 
 module Dark::Agent
   # MessageHandler manages task responses and command registration
-  # for communication with the Mythic C2 server.
+  # for communication with the Mythic server.
   #
   # This module provides a queue-based approach to collecting task responses
   # and command registrations, which are later combined into a single agent message
-  # when sent to the Mythic C2 server.
+  # when sent to the Mythic server.
   #
   # Example usage:
   # ```
@@ -31,7 +31,7 @@ module Dark::Agent
   # # Check if there are any responses to send
   # if MessageHandler.has_responses?
   #   message = MessageHandler.prepare_response
-  #   # Send message to C2 server
+  #   # Send message to server
   # end
   # ```
 
@@ -231,7 +231,7 @@ module Dark::Agent
     # Message Generation Methods
     # =========================================================
 
-    # Prepare the combined agent message for sending to Mythic C2
+    # Prepare the combined agent message for sending to Mythic
     def self.prepare_response
       # Final responses array (without SOCKS data)
       task_responses = [] of Hash(String, JSON::Any)

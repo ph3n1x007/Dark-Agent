@@ -8,7 +8,7 @@ weight = 100
 
 ## Summary
 
-Dark Agent is a production-ready Mythic C2 Agent designed for Linux and MacOS systems. Built in Crystal language, it provides comprehensive post-exploitation capabilities through COFF/BOF loading, extensive system commands, and flexible C2 communication options. All network communications use statically-linked OpenSSL for maximum compatibility.
+Dark Agent is a production-ready Mythic Agent designed for Linux and MacOS systems. Built in Crystal language, it provides comprehensive remote operations capabilities through dynamic module loading, extensive system commands, and flexible communication options. All network communications use statically-linked OpenSSL for maximum compatibility.
 
 ### Core Features
 
@@ -16,17 +16,17 @@ Dark Agent is a production-ready Mythic C2 Agent designed for Linux and MacOS sy
 - Written in Crystal language for optimal performance
 - Static OpenSSL linking (self-contained binary)
 - Support for Linux and macOS systems
-- Multi-threading for BOF execution and SOCKS handling
+- Multi-threading for module execution and SOCKS handling
 
-**C2 Communication:**
-- HTTP and HTTPX (malleable) C2 profiles with domain rotation
+**Communication:**
+- HTTP and HTTPX (malleable) communication profiles with domain rotation
 - AES-256-CBC encryption with HMAC authentication
-- Configurable symmetric jitter for OPSEC
+- Configurable symmetric jitter for operational security
 - Realtime mode for interactive operations
 - SOCKS proxy support for network pivoting
 
 **Command Capabilities:**
-- COFF/BOF loading and execution with extensive built-in Unix commands
+- Dynamic module loading and execution with extensive built-in Unix commands
 - File upload/download with configurable chunk sizes
 - Job management (background task execution)
 - Dynamic command loading/unloading
@@ -60,16 +60,16 @@ Dark Agent provides several build options to customize the payload for your spec
 # Build SOCKS debug version
 ./build.sh -S
 
-# Specify C2 profile type
+# Specify communication profile type
 ./build.sh -p http     # Build with HTTP profile (default)
-./build.sh -p httpx    # Build with HTTPX profile (malleable C2)
+./build.sh -p httpx    # Build with HTTPX profile (malleable)
 ```
 
 **Build Features:**
 - **Static OpenSSL**: All builds include statically-linked OpenSSL for maximum compatibility
 - **No Dependencies**: Resulting binary runs on any Linux/macOS system without external libraries
-- **Automatic BOF Compilation**: Built-in Unix commands compiled during build process
-- **Multi-threading Support**: BOF execution and SOCKS proxy handling use separate threads
+- **Automatic Module Compilation**: Built-in Unix commands compiled during build process
+- **Multi-threading Support**: Module execution and SOCKS proxy handling use separate threads
 
 ### Build Parameters
 
@@ -78,11 +78,11 @@ When creating a payload in Mythic, you can configure the following build paramet
 **Security & Performance:**
 - **debug_mode** (Boolean, default: false) - Enables verbose logging to stdout, useful for troubleshooting agent issues  
 - **debug_socks** (Boolean, default: false) - Enables SOCKS proxy debug logging for network troubleshooting
-- **disable_encryption** (Boolean, default: false) - Disables AES-256-CBC encryption for C2 communications (testing only)
+- **disable_encryption** (Boolean, default: false) - Disables AES-256-CBC encryption for communications (testing only)
 - **disable_ssl_verify** (Boolean, default: true) - Disables SSL certificate validation for development environments
 
 **Communication Behavior:**
-- **symmetric_jitter** (Boolean, default: false) - Uses symmetric jitter ranging from (sleep_time ± jitter%) for better OPSEC
+- **symmetric_jitter** (Boolean, default: false) - Uses symmetric jitter ranging from (sleep_time ± jitter%) for better operational security
 - **realtime** (Boolean, default: false) - Immediately sends pending command responses without waiting for sleep interval
 - **chunk_size** (Number, default: 512) - Size of file transfer chunks in KB, affects upload/download performance
 
@@ -108,15 +108,15 @@ The debug build provides detailed logging to help with troubleshooting:
    ```
 
 Debug output includes:
-- C2 profile initialization
+- Communication profile initialization
 - Request/response details
-- BOF loading and execution
+- Module loading and execution
 - Encryption/decryption operations
 - Command processing
 - Task handling
 - File transfer operations
 
-The debug output is essential for developing and testing custom BOFs, troubleshooting C2 connectivity issues, or diagnosing problems with malleable profiles.
+The debug output is essential for developing and testing custom modules, troubleshooting connectivity issues, or diagnosing problems with malleable profiles.
 
 ## Authors
 

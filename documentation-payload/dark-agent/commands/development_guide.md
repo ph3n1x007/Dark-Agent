@@ -13,7 +13,7 @@ This guide explains how to add new commands to Dark Agent, both as built-in comm
 Dark Agent supports two main types of commands:
 
 1. **Built-in Commands**: Native commands implemented directly in the agent's Crystal code
-2. **BOF-based Commands**: Commands implemented as C Beacon Object Files (BOFs)
+2. **Object File Commands**: Commands implemented as C loadable object files
 
 Both types require:
 - Implementation in the agent code (Crystal or C)
@@ -153,11 +153,11 @@ class YourCommandCommand(CommandBase):
         return resp
 ```
 
-## Adding a New BOF-based Command
+## Adding a New Object File Command
 
-For a detailed understanding of how the BOF loading system works internally, see the [BOF Loading System](/agents/dark-agent/commands/bof_loading) documentation.
+For a detailed understanding of how the module loading system works internally, see the [Module Loading System](/agents/dark-agent/commands/bof_loading) documentation.
 
-### Step 1: Create the BOF in C
+### Step 1: Create the Object File in C
 
 Create a new C file in `src/bofs/` named `your_bof.c`:
 
@@ -166,8 +166,8 @@ Create a new C file in `src/bofs/` named `your_bof.c`:
 #include <string.h>
 
 void coffee() {
-    // Simple example - BOFs in Dark Agent use the coffee() entry point
-    BeaconPrintf("Your BOF is executing!");
+    // Simple example - modules in Dark Agent use the coffee() entry point
+    BeaconPrintf("Your module is executing!");
     
     // For string formatting, convert all values to strings first
     char buffer[256];
@@ -180,9 +180,9 @@ void coffee() {
 }
 ```
 
-**Note:** Dark Agent BOFs use a simplified API without complex argument parsing. Arguments are typically handled by the Python wrapper and passed as simple parameters.
+**Note:** Dark Agent modules use a simplified API without complex argument parsing. Arguments are typically handled by the Python wrapper and passed as simple parameters.
 
-Compile your BOF:
+Compile your object file:
 ```bash
 gcc -fPIC -c src/bofs/your_bof.c -o output/bofs/your_bof.o -I src/bofs/includes
 ```
@@ -212,7 +212,7 @@ class YourBofCommand(CommandBase):
     cmd = "your_bof"
     needs_admin = False
     help_cmd = "your_bof [args]"
-    description = "Description of your BOF command"
+    description = "Description of your object file command"
     version = 1
     author = "Your Name"
     attackmapping = []
@@ -281,7 +281,7 @@ class SleepArguments(TaskArguments):
                 cli_name="Seconds",
                 display_name="Sleep Time (seconds)",
                 type=ParameterType.Number,
-                description="Number of seconds between beacons (0 for polling mode)",
+                description="Number of seconds between callbacks (0 for polling mode)",
                 parameter_group_info=[
                     ParameterGroupInfo(
                         required=True,
@@ -426,11 +426,11 @@ class UploadCommand(CommandBase):
     )
 ```
 
-### Example 3: BOF-based Command with Arguments - Shell
+### Example 3: Object File Command with Arguments - Shell
 
-The `shell` command demonstrates how to create a BOF command that accepts arguments:
+The `shell` command demonstrates how to create an object file command that accepts arguments:
 
-**BOF (C):**
+**Object File (C):**
 ```c
 // In src/bofs/SA/shell.c
 #include "../includes/beacon.h"
@@ -483,8 +483,8 @@ class ShellArguments(TaskArguments):
       if len(self.command_line) <= 0:
         raise Exception("Usage: shell [command] [arguments]")
 
-      # Pass the entire command line as-is to the BOF
-      # The BOF will handle parsing the command and arguments
+      # Pass the entire command line as-is to the module
+      # The module will handle parsing the command and arguments
       self.set_arg("bof_args_str", self.command_line.strip())
 
 class ShellCommand(CommandBase):
@@ -513,7 +513,7 @@ class ShellCommand(CommandBase):
         return response
 ```
 
-### Example 4: BOF-based Command with Parameters - Portscan
+### Example 4: Object File Command with Parameters - Portscan
 
 The `portscan` command shows how to handle structured parameters:
 
@@ -553,11 +553,11 @@ class PortscanArguments(TaskArguments):
         host = dictionary_arguments.get("host")
         ports = dictionary_arguments.get("ports")
         
-        # CRITICAL: Set these parameters for BOF execution
-        self.add_arg("name", "portscan")           # BOF name
+        # CRITICAL: Set these parameters for module execution
+        self.add_arg("name", "portscan")           # Module name
         self.add_arg("host", host)                 # For display
         self.add_arg("ports", ports)               # For display
-        self.add_arg("bof_args", f"{host} {ports}") # Arguments passed to BOF
+        self.add_arg("bof_args", f"{host} {ports}") # Arguments passed to module
 
 class PortscanCommand(CommandBase):
     cmd = "portscan"
@@ -589,8 +589,8 @@ class PortscanCommand(CommandBase):
 
 When implementing Mythic command wrappers, these attributes control their behavior:
 
-- **builtin**: Set to `True` for built-in commands, `False` for BOF-based commands
-- **load_only**: Set to `True` for BOF commands that need to be loaded first
+- **builtin**: Set to `True` for built-in commands, `False` for object file commands
+- **load_only**: Set to `True` for object file commands that need to be loaded first
 - **suggested_command**: Set to `True` to display in command suggestions
 - **supported_os**: Array of supported operating systems (`SupportedOS.Linux`, `SupportedOS.MacOS`)
 
@@ -614,27 +614,27 @@ Available parameter types for Mythic commands:
    - Rebuild the agent with `./build.sh`
    - Test through the Mythic UI
 
-2. **For BOF-based Commands**:
-   - Create your BOF in `src/bofs/c/`
+2. **For Object File Commands**:
+   - Create your module in `src/bofs/c/`
    - Compile with `gcc -fPIC -c src/bofs/c/your_bof.c -o output/bofs/your_bof.o -I src/bofs/c/includes`
    - Add your Python wrapper in `mythic/agent_functions/`
-   - Test by loading the BOF with `bof_load your_bof` and executing it
+   - Test by loading the module with `bof_load your_bof` and executing it
 
-## Critical Pattern for BOF Commands with Arguments
+## Critical Pattern for Object File Commands with Arguments
 
-When creating BOF-based commands that accept arguments, you **MUST** follow this pattern in your Mythic Python wrapper:
+When creating object file commands that accept arguments, you **MUST** follow this pattern in your Mythic Python wrapper:
 
 ### Required Parameters
 
 In your argument parsing method, set these critical parameters:
 
 ```python
-# CRITICAL: These parameters are required for BOF execution
-self.set_arg("name", "your_bof_name")        # The BOF name to execute
+# CRITICAL: These parameters are required for module execution
+self.set_arg("name", "your_bof_name")        # The module name to execute
 
 # Choose ONE of the following argument patterns:
 
-# Option 1: Split arguments (traditional BOF behavior)
+# Option 1: Split arguments (traditional behavior)
 self.set_arg("bof_args", "arg1 arg2 arg3")   # Arguments split by spaces into argv[0], argv[1], argv[2]
 
 # Option 2: Single string argument (shell-like commands)
@@ -655,20 +655,20 @@ async def create_go_tasking(self, taskData: PTTaskMessageAllData) -> PTTaskCreat
     return response
 ```
 
-### BOF Argument Handling: bof_args vs bof_args_str
+### Module Argument Handling: bof_args vs bof_args_str
 
-Dark Agent supports two different argument passing patterns for BOFs:
+Dark Agent supports two different argument passing patterns for modules:
 
 #### bof_args (Split Arguments)
-Use this for traditional BOFs that expect individual arguments:
+Use this for modules that expect individual arguments:
 - Arguments are split by spaces: `"arg1 arg2 arg3"` becomes `argv[0]="arg1"`, `argv[1]="arg2"`, `argv[2]="arg3"`
-- Best for BOFs that parse individual parameters
+- Best for modules that parse individual parameters
 - Example: `portscan 192.168.1.1 22,80,443`
 
 #### bof_args_str (Single String Argument)
 Use this for shell-like commands that need the entire command line:
 - Entire string passed as `argv[0]`: `"ls -latr /tmp/"` becomes `argv[0]="ls -latr /tmp/"`
-- Best for BOFs that execute system commands or need complex argument parsing
+- Best for modules that execute system commands or need complex argument parsing
 - Example: `shell ls -latr /tmp/`
 
 ### Why This Pattern is Required
@@ -677,11 +677,11 @@ Dark Agent's command handler works as follows:
 
 1. Your Mythic command wrapper parses user input and sets the `name` and either `bof_args` or `bof_args_str` parameters
 2. The wrapper routes the command to `bof_exec` via `CommandName="bof_exec"`
-3. The agent receives a `bof_exec` command with your BOF name and arguments
+3. The agent receives a `bof_exec` command with your module name and arguments
 4. The agent checks for `bof_args_str` first (single string), then falls back to `bof_args` (split arguments)
-5. The agent executes the BOF using the BOF registry with the processed arguments
+5. The agent executes the module using the module registry with the processed arguments
 
-**Without this pattern, your BOF command will not work correctly.**
+**Without this pattern, your object file command will not work correctly.**
 
 ## Common Patterns
 
@@ -689,6 +689,6 @@ Dark Agent's command handler works as follows:
 2. **Parameter Validation**: Validate parameters before using them
 3. **UI Display**: Set `DisplayParams` in `create_go_tasking` for clear UI feedback
 4. **Progress Updates**: Use `MessageHandler.add_task_info` for progress updates during long operations
-5. **BOF Argument Routing**: Always use the `name` and `bof_args` pattern for BOF commands
+5. **Module Argument Routing**: Always use the `name` and `bof_args` pattern for object file commands
 
 By following this guide, you can implement new commands for Dark Agent that integrate seamlessly with both the agent codebase and the Mythic UI.

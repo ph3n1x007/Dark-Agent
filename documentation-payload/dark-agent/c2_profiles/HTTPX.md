@@ -5,9 +5,9 @@ weight = 102
 +++
 
 ## Summary
-Advanced malleable C2 profile with extensive traffic customization and static OpenSSL support.
+Advanced malleable communication profile with extensive traffic customization and static OpenSSL support.
 
-The HTTPX profile provides comprehensive traffic manipulation capabilities similar to Cobalt Strike malleable C2 profiles. It enables deep customization of HTTP request/response patterns, headers, data transformations, and domain rotation strategies. All HTTPS connections use statically-linked OpenSSL for maximum compatibility and reliability.
+The HTTPX profile provides comprehensive traffic manipulation capabilities through malleable communication profiles. It enables deep customization of HTTP request/response patterns, headers, data transformations, and domain rotation strategies. All HTTPS connections use statically-linked OpenSSL for maximum compatibility and reliability.
 
 ### Profile Options
 
@@ -24,8 +24,8 @@ Two strategies are available for managing multiple domains:
 #### Failover Threshold
 Number of consecutive failures before switching to the next domain in fail-over mode.
 
-#### Raw C2 Configuration
-This is where the malleable profile is defined, similar to Cobalt Strike malleable C2 profiles. It allows fine-grained control over HTTP traffic characteristics.
+#### Raw Configuration
+This is where the malleable profile is defined. It allows fine-grained control over HTTP traffic characteristics.
 
 ### Malleable Profile Structure
 
@@ -118,11 +118,17 @@ The following transformations are supported:
 
 ### Using with Mythic
 
+#### Outbound proxy
+
+HTTPX uses the same outbound proxy path as HTTP. Set `proxy_host` and `proxy_port` in the C2 parameters when those fields are available, or leave the host empty to discover `http_proxy` / `https_proxy` and their uppercase forms from the process's environment. Both fall back to `all_proxy` / `ALL_PROXY` and honor `no_proxy` / `NO_PROXY`. An explicit profile proxy takes priority over environment settings and bypass rules. Bare host names with a port and HTTP proxy URLs are accepted. Desktop proxy settings and PAC files are not read.
+
+Leave auth fields empty for a proxy without auth. `proxy_user` and `proxy_pass` select Basic auth. Without a user, a `407 Negotiate` challenge selects Kerberos on Linux when `libgssapi_krb5.so.2` and a valid credential cache are present. `KRB5CCNAME` can select the cache. The payload build options `proxy_auth_scheme` and `proxy_spn_override` can force Negotiate or set a service name such as `HTTP@proxy.lab.test`. HTTPS callbacks use CONNECT, then TLS to the callback host. See [HTTP proxy setup](../HTTP/#outbound-proxy) for environment examples and credential checks.
+
 When creating a payload in Mythic with the HTTPX profile, follow these steps:
 
-1. **Select HTTPX Profile**: When creating a new payload, select "HTTPX" from the C2 profile dropdown
+1. **Select HTTPX Profile**: When creating a new payload, select "HTTPX" from the communication profile dropdown
 2. **Configure Basic Options**:
-   - Callback Host/Port: The base domain(s) and port for C2 communications
+   - Callback Host/Port: The base domain(s) and port for server communications
    - Callback Interval: How often the agent checks in
    - Jitter: Randomization percentage for callback timing
    - Kill Date: When the agent should stop functioning
@@ -138,7 +144,7 @@ When creating a payload in Mythic with the HTTPX profile, follow these steps:
 
 5. **Set Agent Parameters**:
    - **debug_mode**: Enable for verbose logging (see Debugging section)
-   - **symmetric_jitter**: Enable for more unpredictable beaconing
+   - **symmetric_jitter**: Enable for more unpredictable callback timing
    - **realtime**: Configure for interactive operations
    - **disable_ssl_verify**: Enable if using self-signed certificates
 

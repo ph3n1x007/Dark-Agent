@@ -31,20 +31,20 @@ shell whoami
 
 ### Implementation Details
 
-The `shell` command is implemented as a BOF (Beacon Object File) that:
+The `shell` command is implemented as a loadable object file that:
 
 1. Takes multiple arguments through the `bof_args` parameter
 2. Joins the command and all its parameters with spaces
 3. Executes the full command using `popen()`
 4. Returns the command output with proper newline handling
 
-The command uses the `bof_args` parameter to pass arguments directly to the BOF execution framework, eliminating the need to manually call `bof_exec`.
+The command uses the `bof_args` parameter to pass arguments directly to the module execution framework, eliminating the need to manually call `bof_exec`.
 
-### OPSEC Considerations
+### Security Considerations
 
 - **Process Creation**: This command will spawn new processes on the target system
 - **Command History**: Commands may be logged in shell history depending on system configuration  
-- **Network Traffic**: Command output is transmitted back to the C2 server
+- **Network Traffic**: Command output is transmitted back to the server
 - **Detection**: Process monitoring tools may detect unusual command execution patterns
 
 ### Mitre ATT&CK Mapping

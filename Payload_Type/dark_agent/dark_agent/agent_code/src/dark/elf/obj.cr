@@ -342,7 +342,7 @@ module Dark::ELF
     end
 
     private def resolve_symbol(symbol : Symbol) : UInt64
-      # Check for beacon callback symbol
+      # Check for callback symbol
       if callback_addr = Callbacks.lookup(symbol.name)
         log_debug "External symbol \033[31m#{symbol.name}\033[0m found in \033[31mbeacon callbacks\033[0m at \033[31m0x#{callback_addr.to_s(16)}\033[0m"
         return callback_addr

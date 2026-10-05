@@ -1,12 +1,12 @@
 +++
-title = "C2 Profiles"
+title = "Communication Profiles"
 chapter = true
 weight = 20
 pre = "<b>3. </b>"
 +++
 
-# Available C2 Profiles
+# Available Communication Profiles
 
-Dark Agent supports both standard HTTP and malleable HTTPX profiles for C2 communications.
+Dark Agent supports both standard HTTP and malleable HTTPX profiles for server communications.
 
 {{% children %}}

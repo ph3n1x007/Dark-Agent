@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-BOF test harness for dark-agent. Auto-discovers compiled BOFs for the
+Object file test harness for dark-agent. Auto-discovers compiled object files for the
 selected platform, loads them into a live callback, and exercises each
 one with appropriate test parameters.
 

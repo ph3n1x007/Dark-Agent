@@ -27,7 +27,7 @@ ps
 
 ### Implementation Details
 
-The `ps` command is implemented as a BOF (Beacon Object File) that:
+The `ps` command is implemented as a loadable object file that:
 
 1. Reads the `/proc` filesystem to enumerate running processes
 2. Parses `/proc/[pid]/status` files to extract process information
@@ -45,11 +45,11 @@ PID      PPID     NAME             STATE
 ...
 ```
 
-### OPSEC Considerations
+### Security Considerations
 
 - **File System Access**: This command reads multiple files from `/proc` filesystem
 - **Process Enumeration**: May trigger security tools that monitor process enumeration
-- **Network Traffic**: Process list data is transmitted back to the C2 server
+- **Network Traffic**: Process list data is transmitted back to the server
 - **Detection**: Security tools may detect repeated `/proc` filesystem access patterns
 
 ### Mitre ATT&CK Mapping

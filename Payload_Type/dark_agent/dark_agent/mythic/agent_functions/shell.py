@@ -40,7 +40,7 @@ class ShellCommand(CommandBase):
     )
 
     async def opsec_pre(self, taskData: PTTaskMessageAllData) -> PTTTaskOPSECPreTaskMessageResponse:
-        # Add immediate visible output for the OPSEC check
+        # Add immediate visible output for the operational security check
         await SendMythicRPCResponseCreate(MythicRPCResponseCreateMessage(
             TaskID=taskData.Task.ID,
             Response=f"🚨 TWO PERSON INTEGRITY REQUIRED 🚨\n\nWaiting for approval from another operator before execution..."

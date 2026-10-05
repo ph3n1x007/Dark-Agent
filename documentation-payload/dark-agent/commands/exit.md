@@ -34,7 +34,7 @@ The exit command performs the following cleanup steps:
 
 1. **Stop New Tasks**: Prevents acceptance of new commands
 2. **Complete Pending Operations**: Waits for active file transfers to complete
-3. **Terminate Background Jobs**: Kills all running BOF jobs
+3. **Terminate Background Jobs**: Kills all running module jobs
 4. **Close Network Connections**: Cleanly closes SOCKS proxy connections
 5. **Release Memory**: Frees allocated memory and resources
 6. **Process Termination**: Exits the agent process
@@ -88,7 +88,7 @@ exit
 > Agent shutting down gracefully...
 ```
 
-## OPSEC Considerations
+## Security Considerations
 
 **Clean Exit:**
 - Removes most traces of agent execution from memory
@@ -101,9 +101,9 @@ exit
 - System logs may still contain execution traces
 
 **Network Cleanup:**
-- Gracefully closes C2 connections
+- Gracefully closes server connections
 - Terminates SOCKS proxy sessions properly
-- May send final beacon to indicate shutdown
+- May send final check-in to indicate shutdown
 
 ## Operational Use Cases
 
@@ -151,7 +151,7 @@ exit
 After exit, agent recovery requires:
 
 1. **New Deployment**: Agent must be redeployed manually
-2. **No Remote Restart**: Cannot be restarted via C2 commands
+2. **No Remote Restart**: Cannot be restarted via remote commands
 3. **Persistence Loss**: Any persistence mechanisms must be re-triggered
 4. **Session Loss**: All session state and context is lost
 

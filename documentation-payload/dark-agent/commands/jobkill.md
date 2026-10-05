@@ -73,11 +73,11 @@ Killed jobs change status:
 
 The job entry remains in the jobs list until agent restart.
 
-## OPSEC Considerations
+## Security Considerations
 
 - Termination is immediate and may leave processes in unexpected states
-- Some BOF operations may not handle termination gracefully
-- System processes spawned by BOFs may continue running independently
+- Some module operations may not handle termination gracefully
+- System processes spawned by modules may continue running independently
 - Consider the impact of abrupt termination on system stability
 
 ## Use Cases
@@ -94,7 +94,7 @@ jobkill 1
 
 **Hung processes:**
 ```bash
-# BOF appears stuck
+# Module appears stuck
 jobs
 > Job ID: 4 | Command: custom_bof | Status: Running | Started: 2024-12-04 14:30:22
 
@@ -135,18 +135,18 @@ jobkill 2
 
 1. **Check job status** before killing with `jobs` command
 2. **Kill unnecessary jobs** to free system resources
-3. **Consider graceful alternatives** if BOF supports clean shutdown
+3. **Consider graceful alternatives** if the module supports clean shutdown
 4. **Monitor system impact** after killing critical jobs
 
 ## Related Commands
 
 - **jobs**: List all background jobs and their status
-- **bof_exec**: Execute BOF commands that may run as background jobs
-- Individual BOF commands that spawn long-running processes
+- **bof_exec**: Execute module commands that may run as background jobs
+- Individual module commands that spawn long-running processes
 
 ## Limitations
 
-- Cannot kill system processes spawned outside BOF framework
-- Some BOF operations may not respond to termination signals
+- Cannot kill system processes spawned outside the module framework
+- Some module operations may not respond to termination signals
 - Partial results from killed jobs may be incomplete or corrupted
 - Agent restart is the only way to fully clean completed/killed job entries

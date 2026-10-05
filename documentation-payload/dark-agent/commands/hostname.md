@@ -97,7 +97,7 @@ hostname
 # Reveals: Load balancer, production, web tier
 ```
 
-## OPSEC Considerations
+## Security Considerations
 
 - **Very Low Profile**: Standard system query
 - **No Network Activity**: Local system call only
@@ -106,7 +106,7 @@ hostname
 
 ## Technical Details
 
-- **Implementation**: BOF (Beacon Object File) execution
+- **Implementation**: Loadable object file execution
 - **Performance**: Instantaneous execution
 - **Source**: System hostname configuration
 - **Format**: Standard hostname output format

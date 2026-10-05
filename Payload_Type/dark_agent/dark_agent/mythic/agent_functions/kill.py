@@ -58,7 +58,7 @@ class KillCommand(CommandBase):
         pid = taskData.args.get_arg("pid")
         signal = taskData.args.get_arg("signal")
         
-        # Add immediate visible output for the OPSEC check
+        # Add immediate visible output for the operational security check
         await SendMythicRPCResponseCreate(MythicRPCResponseCreateMessage(
             TaskID=taskData.Task.ID,
             Response=f"🚨 TWO PERSON INTEGRITY REQUIRED 🚨\n\nAttempting to terminate process PID {pid} with signal {signal}.\n\nWaiting for approval from another operator before execution..."

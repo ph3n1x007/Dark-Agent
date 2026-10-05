@@ -1,7 +1,7 @@
 require "./obj"
 
 module Dark::ELF
-  # BofRegistry manages Beacon Object Files (BOFs) in memory
+  # BofRegistry manages loadable object files (BOFs) in memory
   #
   # BOFs are stored as raw bytes and only initialized when executed,
   # which minimizes memory usage and reduces the chance of memory corruption
@@ -17,7 +17,7 @@ module Dark::ELF
 
     # Job stores metadata for a running BOF job
     #
-    # @param task_id [String] The task ID from the C2 framework
+    # @param task_id [String] The task ID from the framework
     # @param bof_name [String] The name of the BOF being executed
     # @param start_time [Time] When the job started
     # @param thread [Thread] The thread executing the BOF

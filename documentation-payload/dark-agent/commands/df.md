@@ -53,7 +53,7 @@ When viewed in the Mythic browser interface, the output includes:
 
 ## Implementation
 
-This command is implemented as a BOF (Beacon Object File) that:
+This command is implemented as a loadable object file that:
 
 1. Reads `/proc/mounts` to identify mounted filesystems
 2. Uses `statvfs()` to get filesystem statistics

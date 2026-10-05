@@ -5,7 +5,7 @@ require "./base"
 require "../config"
 
 module Dark::Agent::Transport
-  # HTTP profile implementation compatible with Mythic C2
+  # HTTP profile implementation compatible with Mythic
   class HTTP < Base
     # Make it a singleton so we can access it from outside
     @@instance : HTTP?
@@ -69,7 +69,7 @@ module Dark::Agent::Transport
 
     # Implementation of send_request method required by Base class
     #
-    # Mythic communication: Sends data to C2 using standard HTTP transport
+    # Mythic communication: Sends data to server using standard HTTP transport
     protected def send_request(message : String) : {::HTTP::Client::Response?, String?}
       _, url, http_headers = create_http_client
       send_http_request(url, http_headers, message)
@@ -77,7 +77,7 @@ module Dark::Agent::Transport
 
     # Implementation of process_response required by Base class
     #
-    # Mythic communication: Processes and decrypts responses from C2 server
+    # Mythic communication: Processes and decrypts responses from server
     protected def process_response(raw_body : String) : String
       return "" if raw_body.empty?
 
@@ -126,7 +126,7 @@ module Dark::Agent::Transport
 
     # Implementation of build_full_url required by Base class
     #
-    # Builds the full URL for C2 communication from profile settings
+    # Builds the full URL for server communication from profile settings
     protected def build_full_url(path : String) : String
       host = @config.c2_profile["callback_host"].to_s
       port = @config.c2_profile["callback_port"].to_s

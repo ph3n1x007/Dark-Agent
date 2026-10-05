@@ -153,7 +153,7 @@ AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 AZURE_CLIENT_SECRET=abc123def456
 ```
 
-## OPSEC Considerations
+## Security Considerations
 
 - **Very Low Profile**: Standard system command
 - **No Network Activity**: Local environment only
@@ -229,7 +229,7 @@ cat ~/.profile  # User profile
 
 ## Technical Details
 
-- **Implementation**: BOF (Beacon Object File) execution
+- **Implementation**: Loadable object file execution
 - **Performance**: Very fast, minimal system impact
 - **Output Size**: Variable, depends on environment complexity
 - **Inheritance**: Shows variables inherited from parent process

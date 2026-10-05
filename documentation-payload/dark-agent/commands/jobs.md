@@ -8,7 +8,7 @@ weight = 12
 
 Lists all currently running background jobs and their status.
 
-The `jobs` command displays information about active background processes spawned by BOF commands or other long-running operations. Each job shows its ID, command, status, and runtime information.
+The `jobs` command displays information about active background processes spawned by module commands or other long-running operations. Each job shows its ID, command, status, and runtime information.
 
 ## Arguments
 
@@ -61,9 +61,9 @@ Each job entry contains:
 - **Job Limits**: No hard limit on concurrent jobs (system dependent)
 - **Cleanup**: Completed jobs remain in list until agent restart
 
-## OPSEC Considerations
+## Security Considerations
 
-- Background jobs continue running even if C2 connection is lost
+- Background jobs continue running even if server connection is lost
 - Long-running jobs may consume system resources
 - Some jobs may create detectable process activity
 - Job output is stored in agent memory until retrieved
@@ -71,7 +71,7 @@ Each job entry contains:
 ## Related Commands
 
 - **jobkill**: Terminate a specific job by ID
-- **bof_exec**: Many BOF commands run as background jobs
+- **bof_exec**: Many module commands run as background jobs
 - Individual commands that support background execution
 
 ## Examples
@@ -105,7 +105,7 @@ jobs
 
 - **Memory Usage**: Each job stores its complete output
 - **System Resources**: Multiple jobs share system CPU and I/O
-- **Network Impact**: Job output transmitted via normal C2 channels
+- **Network Impact**: Job output transmitted via normal communication channels
 - **Cleanup**: Consider manually killing unnecessary long-running jobs
 
 ## Troubleshooting
@@ -113,5 +113,5 @@ jobs
 If jobs appear stuck:
 1. Check system resource availability
 2. Use `jobkill` to terminate unresponsive jobs
-3. Monitor for BOF-related errors in debug mode
+3. Monitor for module-related errors in debug mode
 4. Consider agent restart for cleanup if necessary

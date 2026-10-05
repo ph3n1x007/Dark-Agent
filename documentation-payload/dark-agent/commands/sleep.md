@@ -8,7 +8,7 @@ weight = 14
 
 Dynamically changes the agent's callback interval and jitter percentage during runtime.
 
-The `sleep` command allows operators to modify the agent's beaconing behavior without rebuilding or redeploying the payload. This is essential for operational security and adapting to different network conditions.
+The `sleep` command allows operators to modify the agent's callback behavior without rebuilding or redeploying the payload. This is essential for operational security and adapting to different network conditions.
 
 ## Arguments
 
@@ -36,7 +36,7 @@ sleep 600 10
 ```
 Sleep interval updated: 30 seconds, jitter: 15%
 Previous: 10 seconds, jitter: 10%
-Next beacon will use new timing
+Next callback will use new timing
 ```
 
 ## Timing Behavior
@@ -46,13 +46,13 @@ The new timing takes effect immediately after the command response:
 ```bash
 # Current: 10s interval, 20% jitter (8-12 second actual intervals)
 sleep 5 0
-# Next beacon: exactly 5 seconds
-# All subsequent beacons: exactly 5 seconds (no jitter)
+# Next callback: exactly 5 seconds
+# All subsequent callbacks: exactly 5 seconds (no jitter)
 ```
 
 ## Technical Details
 
-- **Immediate Effect**: New timing applies to the very next beacon
+- **Immediate Effect**: New timing applies to the very next callback
 - **Jitter Calculation**: Applied according to `symmetric_jitter` build parameter
 - **Interrupt Capability**: Can interrupt current sleep cycle immediately
 - **Realtime Override**: Realtime mode still bypasses sleep when responses are pending
@@ -71,7 +71,7 @@ sleep 10 20
 # Actual intervals: 8.0 to 12.0 seconds
 ```
 
-## OPSEC Considerations
+## Security Considerations
 
 **Stealth Profiles:**
 ```bash
@@ -125,7 +125,7 @@ sleep 1800 30   # 30 minutes
 
 **Detection Evasion:**
 ```bash
-# Detected regular beacons? Add randomness
+# Detected regular callbacks? Add randomness
 sleep 120 75    # 2 minutes with 75% jitter
 
 # Very irregular timing
@@ -144,7 +144,7 @@ sleep 0
 **Maximum Stealth:**
 ```bash
 sleep 86400 20  # 24 hours ± 20%
-# One beacon per day with variance
+# One callback per day with variance
 ```
 
 ## Error Handling

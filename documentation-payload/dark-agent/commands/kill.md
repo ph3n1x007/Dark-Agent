@@ -40,7 +40,7 @@ The first example sends SIGTERM to process 1234. The second example explicitly s
 
 ### Implementation Details
 
-The `kill` command is implemented as a BOF (Beacon Object File) that:
+The `kill` command is implemented as a loadable object file module that:
 
 1. Validates the provided PID and signal number
 2. Checks if the target process exists using `kill(pid, 0)`
@@ -63,7 +63,7 @@ The command provides comprehensive error handling for common scenarios:
 - **Permission Denied**: Reports when insufficient privileges to signal the process
 - **Invalid Signal**: Reports when signal number is outside valid range (1-64)
 
-### OPSEC Considerations
+### Security Considerations
 
 - **Process Termination**: Terminating processes may be logged by security tools
 - **Permission Checks**: The command first checks process existence, which may generate audit logs

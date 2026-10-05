@@ -49,10 +49,10 @@ File downloaded successfully: /home/user/large_file.zip
 - **Performance**: Uses realtime mode if enabled to reduce transfer latency
 - **File Size**: No practical size limit, handled through chunking
 
-## OPSEC Considerations
+## Security Considerations
 
 - File reads are performed by the agent process, not spawned subprocesses
-- Transfer uses normal C2 communication channels
+- Transfer uses normal communication channels
 - Large files create multiple HTTP requests which may be observable
 - Consider file size vs. detection risk when downloading large files
 

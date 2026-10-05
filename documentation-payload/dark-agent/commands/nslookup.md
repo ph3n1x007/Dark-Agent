@@ -67,6 +67,6 @@ DNS lookup completed for 2 hostname(s).
 
 ## Implementation
 
-This command is implemented as a BOF (Beacon Object File) that uses the system's `getaddrinfo()` function to perform DNS resolution. It supports both IPv4 and IPv6 lookups and handles multiple hostnames efficiently.
+This command is implemented as a loadable object file that uses the system's `getaddrinfo()` function to perform DNS resolution. It supports both IPv4 and IPv6 lookups and handles multiple hostnames efficiently.
 
 The command automatically handles DNS resolution using the system's default nameserver configuration, but allows specifying a custom nameserver when needed for specific reconnaissance scenarios.

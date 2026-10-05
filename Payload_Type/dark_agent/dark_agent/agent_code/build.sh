@@ -149,7 +149,7 @@ build_release() {
     log_success "Stripped release binary ($(du -sh output/dark-agent | cut -f1))"
 }
 
-# Build Dark Agent in direct mode (COFF loader only)
+# Build Dark Agent in direct mode (object file loader only)
 build_direct_mode() {
     log_info "Building Dark Agent in direct mode (COFF loader only)..."
 

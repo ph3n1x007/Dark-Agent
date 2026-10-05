@@ -114,12 +114,12 @@ portscan 172.16.1.0/24 8080,9090,8443,9443
 
 ## Technical Details
 
-- **Implementation**: Custom BOF with socket programming
+- **Implementation**: Custom object file module with socket programming
 - **Performance**: Concurrent scanning for faster results
 - **Timeouts**: Configurable connection timeouts (default: 3 seconds)
 - **Background Execution**: Runs as background job for large scans
 
-## OPSEC Considerations
+## Security Considerations
 
 **Detection Risk:**
 - **Network Logging**: Connections may be logged by firewalls/IDS

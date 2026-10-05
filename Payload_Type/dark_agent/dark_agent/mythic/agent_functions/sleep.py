@@ -80,7 +80,7 @@ class SleepCommand(CommandBase):
             else:
                 warning_message = f"🚨 TWO PERSON INTEGRITY REQUIRED 🚨\n\nAggressive sleep interval ({seconds}s) will make the callback very noisy.\n\nWaiting for approval from another operator before execution..."
 
-            # Add immediate visible output for the OPSEC check
+            # Add immediate visible output for the operational security check
             await SendMythicRPCResponseCreate(MythicRPCResponseCreateMessage(
                 TaskID=taskData.Task.ID,
                 Response=warning_message
