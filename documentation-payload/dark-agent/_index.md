@@ -78,8 +78,12 @@ When creating a payload in Mythic, you can configure the following build paramet
 **Security & Performance:**
 - **debug_mode** (Boolean, default: false) - Enables verbose logging to stdout, useful for troubleshooting agent issues  
 - **debug_socks** (Boolean, default: false) - Enables SOCKS proxy debug logging for network troubleshooting
-- **disable_encryption** (Boolean, default: false) - Disables AES-256-CBC encryption for communications (testing only)
-- **disable_ssl_verify** (Boolean, default: true) - Disables SSL certificate validation for development environments
+- **encryption** (Boolean, default: true) - AES-256-CBC encryption for communications. Turn off for testing only
+- **ssl_verify** (Boolean, default: true) - Verify the server TLS certificate. Turn off for self-signed lab certificates
+
+**Proxy Options:**
+- **proxy_auth_scheme** (String, default: empty) - Outbound proxy auth. Empty picks from the proxy's 407 challenge; `basic` or `negotiate` forces one
+- **proxy_spn_override** (String, default: empty) - Kerberos service name for the proxy, such as `HTTP@proxy.lab.test`. Empty derives `HTTP@<proxy host>`
 
 **Communication Behavior:**
 - **symmetric_jitter** (Boolean, default: false) - Uses symmetric jitter ranging from (sleep_time ± jitter%) for better operational security

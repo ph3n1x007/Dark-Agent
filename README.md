@@ -34,7 +34,9 @@ Linux builds have OpenSSL statically linked with no `libssl` dependency on the t
 - `debug_mode`: Boolean (default: false) - Enable debug logging and verbose output
 - `debug_socks`: Boolean (default: false) - Enable SOCKS proxy debug logging  
 - `encryption`: Boolean (default: true) - Enable AES-256-CBC encryption for traffic
-- `disable_ssl_verify`: Boolean (default: false) - Skip SSL certificate verification  
+- `ssl_verify`: Boolean (default: true) - Verify the server TLS certificate. Turn off only for self-signed lab certificates
+- `proxy_auth_scheme`: String (default: empty) - Outbound proxy auth. Empty picks from the proxy's 407 challenge; `basic` or `negotiate` forces one
+- `proxy_spn_override`: String (default: empty) - Kerberos service name for the proxy, such as `HTTP@proxy.lab.test`. Empty derives `HTTP@<proxy host>`
 - `symmetric_jitter`: Boolean (default: false) - Use symmetric jitter (sleep_time ± jitter%) for better operational security
 - `realtime`: Boolean (default: false) - Immediately send command responses without waiting for sleep interval
 - `chunk_size`: Number (default: 512) - Size of file transfer chunks in KB, affects upload/download performance

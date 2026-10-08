@@ -231,8 +231,6 @@ class DarkAgent(PayloadType):
         SSL_VERIFY = self.get_parameter("ssl_verify")
         PROXY_AUTH_SCHEME = (self.get_parameter("proxy_auth_scheme") or "").strip().lower()
         PROXY_SPN_OVERRIDE = (self.get_parameter("proxy_spn_override") or "").strip()
-        if PROXY_AUTH_SCHEME not in ("", "basic", "negotiate"):
-            raise ValueError("proxy_auth_scheme must be empty, basic, or negotiate")
         SYMMETRIC_JITTER = self.get_parameter("symmetric_jitter")
         REALTIME = self.get_parameter("realtime")
         CHUNK_SIZE = self.get_parameter("chunk_size")
@@ -241,6 +239,17 @@ class DarkAgent(PayloadType):
         agent_build_path = Path(tmp.name)
 
         try:
+            # Validate inside the try so a bad value becomes a reported build
+            # error with a message, not an unhandled exception in the container.
+            if PROXY_AUTH_SCHEME not in ("", "basic", "negotiate"):
+                raise ValueError(
+                    f"proxy_auth_scheme must be empty, basic, or negotiate (got {PROXY_AUTH_SCHEME!r})"
+                )
+            if PROXY_SPN_OVERRIDE and "@" not in PROXY_SPN_OVERRIDE:
+                raise ValueError(
+                    "proxy_spn_override must be a host-based service name such as HTTP@proxy.example.test"
+                )
+
             #################################################################
             #################################################################
             ### Step 1: Gathering files
@@ -518,10 +527,11 @@ class DarkAgent(PayloadType):
             # Log the full error details
             logging.error(f"Error building payload:\n{str(e)}")
 
-            # Add to response
+            # Add to response. build_stderr must be a string: the response is
+            # serialized to JSON, and an exception object is not serializable.
             resp.set_status(BuildStatus.Error)
-            resp.build_message = "Unknown error while building payload. Check the stderr for this build."
-            resp.build_stderr = e
+            resp.build_message = f"Error while building payload: {e}"
+            resp.build_stderr = str(e)
             resp.build_stdout = ""
             resp.payload = b""
 

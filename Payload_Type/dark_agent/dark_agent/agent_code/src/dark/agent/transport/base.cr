@@ -571,7 +571,13 @@ module Dark::Agent::Transport
             proxy.auth_scheme, proxy.user, proxy.pass, proxy.host, proxy.spn_override
           )
           if !proxy.auth_scheme.empty? && auth.nil?
-            raise "Configured proxy authentication is unavailable"
+            # Name the cause. "basic" with no user and "negotiate" with no
+            # libgssapi both landed here with one message before.
+            if proxy.auth_scheme == "basic"
+              raise "Proxy auth scheme 'basic' needs proxy_user"
+            else
+              raise "Proxy auth scheme '#{proxy.auth_scheme}' is unavailable on this host"
+            end
           end
           client = create_proxied_client(uri, proxy, auth)
         else

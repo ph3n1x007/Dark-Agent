@@ -43,8 +43,10 @@ RUN git clone --depth 1 https://github.com/ProcursusTeam/ldid.git /tmp/ldid && \
 
 # rcodesign: emits SHA-256 CodeDirectory required by macOS 14+.
 # ldid only produces SHA-1 hashes which macOS 26 rejects at launch.
-RUN RCODESIGN_VER=$(wget -qO- "https://api.github.com/repos/indygreg/apple-platform-rs/releases/latest" | \
-        grep '"tag_name"' | sed 's/.*"apple-codesign\/\([^"]*\)".*/\1/') && \
+# Pinned. The previous "releases/latest" lookup went through the unauthenticated
+# GitHub API (60 requests/hour per IP), so a rate-limited or changed response
+# broke the image build, and two builds could get different versions.
+RUN RCODESIGN_VER=0.29.0 && \
     wget -q "https://github.com/indygreg/apple-platform-rs/releases/download/apple-codesign%2F${RCODESIGN_VER}/apple-codesign-${RCODESIGN_VER}-x86_64-unknown-linux-musl.tar.gz" \
         -O /tmp/rcodesign.tar.gz && \
     tar -xzf /tmp/rcodesign.tar.gz -C /tmp && \

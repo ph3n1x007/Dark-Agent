@@ -29,20 +29,21 @@ build_bofs() {
     log_info "Building BOF object files..."
     build_error=0
 
-    # Find all .c files recursively in src/bofs directory
-    find src/bofs -name "*.c" | while read c_file; do
+    # Find all .c files recursively in src/bofs directory.
+    # Feed the loop from process substitution, not a pipe: a piped `while`
+    # runs in a subshell, so `build_error=1` never reached this scope and a
+    # broken BOF shipped silently.
+    while IFS= read -r -d '' c_file; do
         base_name=$(basename "$c_file")
         output_name="${base_name%.c}.o"
         log_action "Compiling $base_name from $c_file"
-        gcc -fPIC -c "$c_file" -o "output/bofs/$output_name" -I src/bofs/includes -w
-
-        if [ $? -eq 0 ]; then
+        if gcc -fPIC -c "$c_file" -o "output/bofs/$output_name" -I src/bofs/includes -w; then
             log_success "Built $output_name"
         else
             log_error "Failed to build $output_name"
             build_error=1
         fi
-    done
+    done < <(find src/bofs -name "*.c" -print0)
 
     # Exit with error if any BOF failed to build
     if [ $build_error -eq 1 ]; then
@@ -60,11 +61,12 @@ build_bofs_macos() {
 
     mkdir -p output/bofs/macos
 
-    find src/bofs -name "*.c" | while read c_file; do
+    # Same process-substitution pattern as build_bofs, for the same reason.
+    while IFS= read -r -d '' c_file; do
         base_name=$(basename "$c_file")
         output_name="${base_name%.c}.o"
         log_action "Compiling ${base_name} for macOS aarch64"
-        /opt/zig/zig cc \
+        if /opt/zig/zig cc \
             -target "${MACOS_ZIG_TARGET}" \
             -I "${MACOS_SDK}/usr/include" \
             -D__aarch64__=1 -D__arm64__=1 \
@@ -72,15 +74,13 @@ build_bofs_macos() {
             -D_FORTIFY_SOURCE=0 \
             -fPIC -c "${c_file}" \
             -o "output/bofs/macos/${output_name}" \
-            -I src/bofs/includes -w
-
-        if [ $? -eq 0 ]; then
+            -I src/bofs/includes -w; then
             log_success "Built ${output_name} (macOS aarch64)"
         else
             log_error "Failed to build ${output_name}"
             build_error=1
         fi
-    done
+    done < <(find src/bofs -name "*.c" -print0)
 
     if [ $build_error -eq 1 ]; then
         log_error "One or more macOS BOFs failed to build"
@@ -293,6 +293,7 @@ usage() {
     echo "  -D    Build direct mode version"
     echo "  -s    Build standalone SOCKS server"
     echo "  -S    Build Dark Agent with SOCKS debug mode (suppresses HTTP logs)"
+    echo "  -x    Add -D debug_socks to a -d/-r/-a build (combine with another action)"
     echo "  -p    Specify profile type (http or httpx)"
     echo "  -B    Build BOF object files for macOS (aarch64)"
     echo "  -m    Build macOS Mach-O binary (release)"
@@ -347,6 +348,11 @@ execute_build() {
         "help")
             usage
             return 0
+            ;;
+        *)
+            log_error "Unknown build action: $action"
+            usage
+            exit 1
             ;;
     esac
 }

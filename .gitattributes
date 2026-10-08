@@ -1,0 +1,18 @@
+# Everything that runs on the Linux build host or the target must stay LF.
+# A Windows checkout with core.autocrlf=true writes CRLF into the working tree,
+# and a folder copied from there onto a Linux box fails with
+# "bash: $'\r': command not found" the moment build.sh runs.
+* text=auto eol=lf
+
+*.sh      text eol=lf
+*.cr      text eol=lf
+*.py      text eol=lf
+*.c       text eol=lf
+*.h       text eol=lf
+*.js      text eol=lf
+*.json    text eol=lf
+*.md      text eol=lf
+Dockerfile text eol=lf
+
+*.png     binary
+*.svg     text eol=lf
